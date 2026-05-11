@@ -28,6 +28,24 @@ public class Tarea {
         this.prioridad = prioridad;
         this.completada = false;
     }
+    
+    public String toTexto(){
+        return id + "|" + titulo + "|" + descripcion + "|" + tipo + "|" + tema +
+                "|" + tiempoEstimado + "|" + fechaEntrega + "|" + prioridad + "|" + completada;
+    }
+    
+    public static Tarea fromTexto(String linea){
+        String [] p = linea.split("\\|",-1);
+        Tarea t = new Tarea (
+                Integer.parseInt(p[0]),p[1],p[2],p[3],p[4],
+                Integer.parseInt(p[5]),
+                LocalDate.parse(p[6]),
+                Prioridad.valueOf(p[7])
+                
+        );
+        if (Boolean.parseBoolean(p[8])) t.marcarComoHecha();
+        return t;
+    }
 
     public void marcarComoHecha() {
         completada = true;

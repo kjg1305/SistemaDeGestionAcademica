@@ -2,15 +2,21 @@ package SistemaDeGestionAcademica;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.io.*;
 
 public class Main {
-
+    
     static Scanner sc = new Scanner(System.in);
     static Estudiante estudiante;
     static List<Estudiante> usuarios = new ArrayList<>();
-
+    private static final String USERS_FILE = "data/users.txt";
+    /**
+     * @param args the command line arguments
+     */
     public static void main(String[] args) {
-
+        
+        new File("data/homework").mkdirs(); //por si no hay carpeta
+        cargarUsuarios();
         iniciarSistema();
 
         int op;
@@ -25,16 +31,45 @@ public class Main {
             op = sc.nextInt();
 
             switch (op) {
-                case 1 -> menuMaterias();
-                case 2 -> menuTareas();
-                case 3 -> menuEstadisticas();
-                case 4 -> menuAlertas();
-                case 0 -> {System.out.println(" Estas saliendo del sistema ... Vuelve pronto !!!  ");}
+                case 1 : menuMaterias();break;
+                case 2 : menuTareas();break;
+                case 3 : menuEstadisticas();break;
+                case 4 : menuAlertas();break;
+                case 0 : {
+                    estudiante.guardarDatos();
+                    guardarUsuarios();
+                    System.out.println(" Estas saliendo del sistema ... Vuelve pronto !!!  ");
+                }break;
                 
                 
             }
 
         } while (op != 0);
+    }
+    
+    private static void cargarUsuarios() {
+        File f = new File(USERS_FILE);
+        if (!f.exists()) return;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                if (!linea.isBlank())
+                    usuarios.add(Estudiante.fromLineaUsuario(linea));
+            }
+        } catch (IOException e) {
+            System.out.println("No se pudo leer users.txt");
+        }
+    }
+
+    private static void guardarUsuarios() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(USERS_FILE))) {
+            for (Estudiante e : usuarios) {
+                pw.println(e.toLineaUsuario());
+            }
+        } catch (IOException e) {
+            System.out.println("Error guardando usuarios.");
+        }
     }
 
     // REGISTRO
@@ -78,6 +113,7 @@ public class Main {
 
         Estudiante nuevo = new Estudiante(usuarios.size() + 1,nombre,apellido,edad,tipo,correo,pass );
         usuarios.add(nuevo);
+        guardarUsuarios();
         System.out.println("Registro exitoso");
     }
 
@@ -92,6 +128,7 @@ public class Main {
             if (e.getEmail().equals(correo) && e.getContraseña().equals(pass)) {
 
                 estudiante = e;
+		estudiante.guardarDatos();
                 System.out.println("Bienvenido " + e.getNombreCompleto());
                 return;
             }
@@ -128,6 +165,7 @@ public class Main {
                 String importancia = sc.nextLine();
 
                 estudiante.agregarMateria(new Materia(estudiante.getMaterias().size() + 1,nombre,desc,profesor,importancia));
+                estudiante.guardarDatos();
             }
 
             if (op == 2) estudiante.verMaterias();
@@ -164,7 +202,7 @@ public class Main {
 
             switch (op) {
 
-                case 1 -> {
+                case 1 : {
                     sc.nextLine();
 
                     System.out.print("Título: ");
@@ -192,16 +230,18 @@ public class Main {
                             (p == 2) ? Prioridad.MEDIA : Prioridad.BAJA;
 
                     m.agregarTarea(new Tarea(m.getTareas().size() + 1,t, d, tipo, tema,tiempo,LocalDate.now().plusDays(dias),pr));
-                }
+                    estudiante.guardarDatos();
+                }break;
 
-                case 2 -> m.mostrarTareas();
-                case 3 -> {
+                case 2 : m.mostrarTareas();break;
+                case 3 : {
                     m.mostrarTareas();
                     int i = sc.nextInt() - 1;
                     m.getTareas().get(i).marcarComoHecha();
-                }
+                    estudiante.guardarDatos();
+                }break;
 
-                case 4 -> {
+                case 4 : {
                     m.mostrarTareas();
                     int i = sc.nextInt() - 1;
 
@@ -219,15 +259,17 @@ public class Main {
                             (p == 2) ? Prioridad.MEDIA : Prioridad.BAJA;
 
                     m.editarTarea(i, t, d, pr);
-                }
+                    estudiante.guardarDatos();
+                }break;
 
-                case 5 -> {
+                case 5 : {
                     m.mostrarTareas();
                     int i = sc.nextInt() - 1;
                     m.eliminarTarea(i);
-                }
+                    estudiante.guardarDatos();
+                }break;
 
-                case 6 -> {
+                case 6 : {
                     System.out.println("1.ALTA 2.MEDIA 3.BAJA");
                     int p = sc.nextInt();
 
@@ -235,9 +277,9 @@ public class Main {
                             (p == 2) ? Prioridad.MEDIA : Prioridad.BAJA;
 
                     m.filtrarPorPrioridad(pr);
-                }
+                }break;
 
-                case 7 -> m.mostrarEstadoMateria();
+                case 7 : m.mostrarEstadoMateria();break;
             }
 
         } while (op != 0);
@@ -266,4 +308,5 @@ public class Main {
     public static void menuAlertas() {
         Alerta.generarAlertas(estudiante.getMaterias());
     }
+    
 }

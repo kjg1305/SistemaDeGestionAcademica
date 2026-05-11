@@ -21,6 +21,15 @@ public class Materia {
         this.tareas = new ArrayList<>();
     }
     
+    public String toTexto(){
+        return id + "|" + nombre + "|" + descripcion + "|" + profesor 
+                + "|" + importancia;
+    }
+    
+    public static Materia fromTexto(String lineaCabeza){
+        String[] p = lineaCabeza.split("\\|",-1);
+        return new Materia(Integer.parseInt(p[0]), p[1], p[2],p[3],p[4]);
+    }
 
     public void mostrarInfo() {
         System.out.println("\nMateria: " + nombre);
